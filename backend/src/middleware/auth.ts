@@ -1,7 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
-const jwtSecret = process.env.JWT_SECRET ?? 'development-secret-change-me';
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET is required to start the backend');
+  }
+  return secret;
+}
+
+const jwtSecret = getJwtSecret();
 
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   const header = req.header('authorization');

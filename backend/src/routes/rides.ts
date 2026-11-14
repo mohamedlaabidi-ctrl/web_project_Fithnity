@@ -81,6 +81,16 @@ router.patch('/:id', requireAuth, async (req, res) => {
     res.status(403).json({ message: 'Only the driver can update this ride' });
     return;
   }
+  if (parsed.data.seatsAvailable !== undefined) {
+    const booked = await prisma.booking.aggregate({
+      where: { rideId, status: { not: 'CANCELLED' } },
+      _sum: { seats: true },
+    });
+    if (parsed.data.seatsAvailable < (booked._sum.seats ?? 0)) {
+      res.status(400).json({ message: 'Available seats cannot be lower than booked seats' });
+      return;
+    }
+  }
   const ride = await prisma.ride.update({ where: { id: rideId }, data: parsed.data, include: rideInclude });
   res.json(ride);
 });

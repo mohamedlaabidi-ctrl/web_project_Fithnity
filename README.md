@@ -1,16 +1,30 @@
-# Thniyti (Phase 2)
+# Thniyti (Objectif 3)
 
 Thniyti is a student carpooling platform project.
 
-This MVP includes:
+## Features
+
+- Account registration and JWT login
+- Ride search by origin, destination, and date
+- Ride creation, editing, and deletion for drivers
+- Seat-aware ride booking and booking cancellation
+- Profile viewing and editing
+- Responsive Angular interface for mobile, tablet, and desktop
+
+## Framework and architecture
+
 - `frontend/`: Angular (standalone + router)
 - `backend/`: Node.js + Express + TypeScript REST API with SQLite and Prisma
-- Authentication, profiles, ride search/publishing, and seat bookings
 
-## Why this stack
-- **Angular** for a structured frontend with routing and reusable components.
-- **Node.js + Express + TypeScript** for a simple, typed REST backend.
-- **SQLite + Prisma** provide a SQL database that runs from a single file.
+Angular was chosen for structured routing and reusable standalone components.
+The backend uses Express and TypeScript for a small typed REST API. Prisma with
+SQLite provides a local SQL database that is easy to run for development.
+
+## Dependencies
+
+- Frontend: Angular, Angular Router, RxJS, TypeScript
+- Backend: Node.js, Express, TypeScript, Prisma, SQLite, Zod, JSON Web Token,
+  bcryptjs, and dotenv
 
 ## Project structure
 ```text
@@ -20,7 +34,7 @@ thniyti/
   README.md
 ```
 
-## Run from a fresh clone
+## Launch from a fresh clone
 
 ### 1) Frontend
 ```bash
@@ -34,13 +48,15 @@ Frontend runs on `http://localhost:4200`.
 ```bash
 cd backend
 npm install
+cp .env.example .env
+# Set DATABASE_URL and a strong JWT_SECRET in .env
 npx prisma migrate dev --name init
 npm run dev
 ```
 Backend runs on `http://localhost:3000`.
 
-The database schema contains `User` and `Ride` models. Copy `.env.example` to
-`.env` before running migrations if `DATABASE_URL` is not already configured.
+The database schema contains users, rides, and bookings. `JWT_SECRET` is
+required when the backend starts.
 
 The backend exposes:
 - `POST /api/auth/register` and `POST /api/auth/login`
@@ -48,7 +64,7 @@ The backend exposes:
 - `GET/POST/PATCH/DELETE /api/rides`
 - `GET /api/bookings`, `POST /api/bookings/rides/:rideId`, and `PATCH /api/bookings/:id/cancel`
 
-### 3) Use the MVP
+### 3) Use the application
 
 Open `http://localhost:4200` to search rides, create an account, publish a
 ride, book available seats, manage bookings, and update your profile.
