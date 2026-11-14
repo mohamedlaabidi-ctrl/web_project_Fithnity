@@ -2,8 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Ride } from '../shared/models';
-
-const API = 'http://localhost:3000/api';
+import { API } from './api';
 
 @Injectable({ providedIn: 'root' })
 export class RidesService {

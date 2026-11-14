@@ -2,8 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { User } from '../shared/models';
-
-const API = 'http://localhost:3000/api';
+import { API } from './api';
 interface AuthResponse { token: string; user: User; }
 
 @Injectable({ providedIn: 'root' })

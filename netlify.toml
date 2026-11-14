@@ -1,0 +1,11 @@
+[build]
+  command = "cd frontend && node scripts/generate-config.mjs && npm run build"
+  publish = "frontend/dist/frontend"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
