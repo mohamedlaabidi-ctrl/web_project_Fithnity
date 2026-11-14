@@ -1,6 +1,15 @@
-<main class="app-shell">
-  <h1>Thniyti</h1>
-  <p>Frontend setup is ready. Phase 1 completed.</p>
-</main>
-
-<router-outlet />
+<header class="topbar">
+  <a class="brand" routerLink="/">Thniyti<span>.</span></a>
+  <nav>
+    <a routerLink="/">Find a ride</a>
+    @if (auth.user()) {
+      <a routerLink="/bookings">My bookings</a>
+      <a routerLink="/profile">Profile</a>
+      <button class="nav-button" (click)="logout()">Log out</button>
+    } @else {
+      <a class="button small" routerLink="/login">Log in</a>
+    }
+  </nav>
+</header>
+<main class="page"><router-outlet /></main>
+<footer>Built for better journeys between students.</footer>

@@ -1,1 +1,37 @@
-/* You can add global styles to this file, and also import other style files */
+:root { --ink:#17231d; --muted:#6d7b72; --accent:#d9f36a; --accent-dark:#99b52b; --surface:#f4f7f1; --line:#dfe7df; }
+* { box-sizing:border-box; }
+body { margin:0; color:var(--ink); background:#fbfcfa; font-family:Arial, sans-serif; }
+h1,h2 { font-family:Arial, sans-serif; letter-spacing:-.04em; }
+h1 { font-size:clamp(2.4rem, 6vw, 5rem); line-height:.98; margin:12px 0 18px; max-width:680px; }
+h2 { font-size:1.8rem; margin:8px 0 20px; }
+.eyebrow { color:var(--accent-dark); font-size:.76rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+.muted { color:var(--muted); }
+.error { color:#b33d35; font-size:.9rem; }
+.success { color:#3e7d47; font-size:.9rem; }
+.hero { background:var(--ink); border-radius:28px; color:#f8fff8; display:flex; justify-content:space-between; min-height:340px; padding:56px; overflow:hidden; }
+.hero .eyebrow { color:var(--accent); }
+.hero-copy { color:#b9c9bc; font-size:1.1rem; max-width:440px; }
+.hero-mark { color:var(--accent); font-size:10rem; line-height:.7; transform:rotate(12deg); }
+.search-panel, .form-card, .auth-card { background:var(--surface); border-radius:20px; margin:24px 0; padding:28px; }
+.search-panel form { display:grid; grid-template-columns:repeat(4, 1fr); align-items:end; gap:16px; }
+label { color:var(--muted); display:grid; font-size:.82rem; font-weight:700; gap:7px; }
+input, textarea { background:#fff; border:1px solid var(--line); border-radius:10px; color:var(--ink); font:inherit; padding:13px 14px; width:100%; }
+input:focus, textarea:focus { border-color:var(--accent-dark); outline:3px solid #e8f4b8; }
+.button { border:0; border-radius:999px; cursor:pointer; display:inline-block; font:inherit; font-weight:700; padding:13px 20px; text-decoration:none; }
+.button:disabled { cursor:not-allowed; opacity:.55; }
+.primary { background:var(--accent); color:var(--ink); }
+.secondary { background:var(--ink); color:#fff; }
+.small { background:var(--ink); color:#fff !important; padding:9px 16px; }
+.section-heading { align-items:end; display:flex; justify-content:space-between; margin:52px 0 22px; }
+.section-heading a { color:var(--ink); font-weight:700; }
+.ride-grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); }
+.ride-card { background:#fff; border:1px solid var(--line); border-radius:16px; padding:22px; }
+.ride-route { align-items:center; display:flex; gap:10px; justify-content:space-between; }
+.ride-route span { color:var(--accent-dark); }
+.ride-card p { color:var(--muted); }
+.ride-meta { border-top:1px solid var(--line); color:var(--muted); display:flex; font-size:.85rem; justify-content:space-between; margin:18px 0; padding-top:14px; }
+.status { color:var(--accent-dark); font-weight:700; }
+.form-card, .auth-card { max-width:580px; margin:60px auto; }
+.form-card form, .auth-card form { display:grid; gap:18px; }
+.link-button { margin-top:20px; padding:0; }
+@media (max-width:700px) { .topbar { padding:18px 20px; } nav { gap:10px; } nav a:not(.button), .nav-button { font-size:.8rem; } .hero { min-height:300px; padding:32px; } .hero-mark { display:none; } .search-panel form { grid-template-columns:1fr; } .page { padding:0 16px; } }
