@@ -23,6 +23,10 @@ backend/*.db
 backend/*.db-journal
 backend/*.sqlite
 backend/*.sqlite3
+backend/prisma/*.db
+backend/prisma/*.db-journal
+backend/prisma/*.sqlite
+backend/prisma/*.sqlite3
 
 # OS / editor
 .DS_Store
