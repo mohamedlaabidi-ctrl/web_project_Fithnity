@@ -1,6 +1,6 @@
 <header class="topbar">
   <a class="brand" routerLink="/">Thniyti<span>.</span></a>
-  <nav>
+  <nav aria-label="Primary navigation">
     <a routerLink="/">Find a ride</a>
     @if (auth.user()) {
       <a routerLink="/bookings">My bookings</a>
@@ -12,4 +12,4 @@
   </nav>
 </header>
 <main class="page"><router-outlet /></main>
-<footer>Built for better journeys between students.</footer>
+<footer class="site-footer">Built for better journeys between students.</footer>

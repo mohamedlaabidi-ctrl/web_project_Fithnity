@@ -4,7 +4,7 @@ import { prisma } from '../lib/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
-const bookingSchema = z.object({ seats: z.coerce.number().int().min(1).max(8) });
+export const bookingSchema = z.object({ seats: z.coerce.number().int().min(1).max(8) });
 const bookingInclude = {
   ride: { include: { driver: { select: { id: true, name: true, email: true } } } },
   passenger: { select: { id: true, name: true, email: true } },
@@ -33,17 +33,20 @@ router.post('/rides/:rideId', async (req, res) => {
       if (!ride) throw new Error('RIDE_NOT_FOUND');
       if (ride.driverId === req.userId) throw new Error('DRIVER_BOOKING');
       if (ride.departureTime <= new Date()) throw new Error('RIDE_DEPARTED');
-      if (ride.seatsAvailable < parsed.data.seats) throw new Error('NOT_ENOUGH_SEATS');
       const existing = await tx.booking.findUnique({
         where: { rideId_passengerId: { rideId: ride.id, passengerId: req.userId as string } },
       });
       if (existing && existing.status !== 'CANCELLED') throw new Error('ALREADY_BOOKED');
+      const seatUpdate = await tx.ride.updateMany({
+        where: { id: ride.id, seatsAvailable: { gte: parsed.data.seats } },
+        data: { seatsAvailable: { decrement: parsed.data.seats } },
+      });
+      if (seatUpdate.count === 0) throw new Error('NOT_ENOUGH_SEATS');
       if (existing) {
         await tx.booking.update({ where: { id: existing.id }, data: { seats: parsed.data.seats, status: 'PENDING' } });
       } else {
         await tx.booking.create({ data: { rideId: ride.id, passengerId: req.userId as string, seats: parsed.data.seats } });
       }
-      await tx.ride.update({ where: { id: ride.id }, data: { seatsAvailable: { decrement: parsed.data.seats } } });
       return tx.booking.findFirstOrThrow({ where: { rideId: ride.id, passengerId: req.userId }, include: bookingInclude });
     });
     res.status(201).json(booking);
