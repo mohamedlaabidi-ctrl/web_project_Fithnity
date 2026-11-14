@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requireVerified } from '../middleware/auth.js';
 
 const router = Router();
 const rideSchema = z.object({
@@ -12,16 +12,25 @@ const rideSchema = z.object({
 });
 
 const rideInclude = {
-  driver: { select: { id: true, name: true, email: true, bio: true } },
+  driver: { select: { id: true, name: true, bio: true, avatarPath: true } },
   _count: { select: { bookings: true } },
 } as const;
 
+async function markCompletedIfPast(rideId: string): Promise<void> {
+  await prisma.ride.updateMany({
+    where: { id: rideId, status: { in: ['OPEN', 'FULL'] }, departureTime: { lt: new Date() } },
+    data: { status: 'COMPLETED' },
+  });
+}
+
 router.get('/', async (req, res) => {
-  const query = z.object({
-    origin: z.string().trim().optional(),
-    destination: z.string().trim().optional(),
-    date: z.coerce.date().optional(),
-  }).safeParse(req.query);
+  const query = z
+    .object({
+      origin: z.string().trim().optional(),
+      destination: z.string().trim().optional(),
+      date: z.coerce.date().optional(),
+    })
+    .safeParse(req.query);
   if (!query.success) {
     res.status(400).json({ message: 'Invalid search parameters' });
     return;
@@ -32,7 +41,8 @@ router.get('/', async (req, res) => {
   const end = start ? new Date(start.getTime() + 24 * 60 * 60 * 1000) : undefined;
   const rides = await prisma.ride.findMany({
     where: {
-      departureTime: { gte: start ?? new Date() , ...(end ? { lt: end } : {}) },
+      departureTime: { gte: start ?? new Date(), ...(end ? { lt: end } : {}) },
+      status: 'OPEN',
       ...(origin ? { origin: { contains: origin } } : {}),
       ...(destination ? { destination: { contains: destination } } : {}),
     },
@@ -44,6 +54,7 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   const rideId = String(req.params.id);
+  await markCompletedIfPast(rideId);
   const ride = await prisma.ride.findUnique({ where: { id: rideId }, include: rideInclude });
   if (!ride) {
     res.status(404).json({ message: 'Ride not found' });
@@ -52,20 +63,20 @@ router.get('/:id', async (req, res) => {
   res.json(ride);
 });
 
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, requireVerified, async (req, res) => {
   const parsed = rideSchema.safeParse(req.body);
-  if (!parsed.success || parsed.data.departureTime <= new Date()) {
+  if (!parsed.success || parsed.data.departureTime <= new Date() || parsed.data.origin === parsed.data.destination) {
     res.status(400).json({ message: 'Provide valid ride details and a future departure time' });
     return;
   }
   const ride = await prisma.ride.create({
-    data: { ...parsed.data, driverId: req.userId as string },
+    data: { ...parsed.data, status: 'OPEN', driverId: req.userId as string },
     include: rideInclude,
   });
   res.status(201).json(ride);
 });
 
-router.patch('/:id', requireAuth, async (req, res) => {
+router.patch('/:id', requireAuth, requireVerified, async (req, res) => {
   const rideId = String(req.params.id);
   const parsed = rideSchema.partial().safeParse(req.body);
   if (!parsed.success) {
@@ -83,7 +94,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
   }
   if (parsed.data.seatsAvailable !== undefined) {
     const booked = await prisma.booking.aggregate({
-      where: { rideId, status: { not: 'CANCELLED' } },
+      where: { rideId, status: { in: ['PENDING', 'ACCEPTED'] } },
       _sum: { seats: true },
     });
     if (parsed.data.seatsAvailable < (booked._sum.seats ?? 0)) {
@@ -91,11 +102,12 @@ router.patch('/:id', requireAuth, async (req, res) => {
       return;
     }
   }
+
   const ride = await prisma.ride.update({ where: { id: rideId }, data: parsed.data, include: rideInclude });
   res.json(ride);
 });
 
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:id', requireAuth, requireVerified, async (req, res) => {
   const rideId = String(req.params.id);
   const existing = await prisma.ride.findUnique({ where: { id: rideId } });
   if (!existing) {
@@ -106,7 +118,11 @@ router.delete('/:id', requireAuth, async (req, res) => {
     res.status(403).json({ message: 'Only the driver can delete this ride' });
     return;
   }
-  await prisma.ride.delete({ where: { id: rideId } });
+  await prisma.ride.update({ where: { id: rideId }, data: { status: 'CANCELLED' } });
+  await prisma.booking.updateMany({
+    where: { rideId, status: { in: ['PENDING', 'ACCEPTED'] } },
+    data: { status: 'CANCELLED' },
+  });
   res.status(204).send();
 });
 

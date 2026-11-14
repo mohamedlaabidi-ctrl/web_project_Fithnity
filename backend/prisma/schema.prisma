@@ -8,47 +8,121 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  name         String
-  email        String    @unique
-  passwordHash String
-  bio          String?
-  createdAt    DateTime  @default(now())
-  rides        Ride[]
-  bookings     Booking[]
+  id               String                   @id @default(cuid())
+  name             String
+  email            String                   @unique
+  passwordHash     String
+  phone            String?
+  bio              String?
+  avatarPath       String?
+  role             UserRole                 @default(USER)
+  emailVerifiedAt  DateTime?
+  isSuspended      Boolean                  @default(false)
+  suspendedAt      DateTime?
+  suspensionReason String?
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  rides            Ride[]
+  bookings         Booking[]
+  refreshTokens    RefreshToken[]
+  verificationTokens EmailVerificationToken[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Ride {
-  id             String   @id @default(cuid())
+  id             String     @id @default(cuid())
   origin         String
   destination    String
   departureTime  DateTime
   seatsAvailable Int
-  createdAt      DateTime @default(now())
+  status         RideStatus @default(OPEN)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
   driverId       String
-  driver         User     @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  driver         User       @relation(fields: [driverId], references: [id], onDelete: Cascade)
   bookings       Booking[]
 
   @@index([driverId])
   @@index([departureTime])
+  @@index([status])
 }
 
 model Booking {
-  id        String        @id @default(cuid())
-  seats     Int
-  status    BookingStatus @default(PENDING)
-  createdAt DateTime      @default(now())
-  rideId    String
+  id          String        @id @default(cuid())
+  seats       Int
+  status      BookingStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  rideId      String
   passengerId String
-  ride      Ride          @relation(fields: [rideId], references: [id], onDelete: Cascade)
-  passenger User          @relation(fields: [passengerId], references: [id], onDelete: Cascade)
+  ride        Ride          @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  passenger   User          @relation(fields: [passengerId], references: [id], onDelete: Cascade)
 
   @@unique([rideId, passengerId])
   @@index([passengerId])
+  @@index([status])
+}
+
+model RefreshToken {
+  id               String   @id @default(cuid())
+  tokenHash        String   @unique
+  csrfTokenHash    String
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  rememberMe       Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  replacedByTokenId String?
+  userAgent        String?
+  ipAddress        String?
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 enum BookingStatus {
   PENDING
-  CONFIRMED
+  ACCEPTED
+  DECLINED
   CANCELLED
+  COMPLETED
+}
+
+enum RideStatus {
+  OPEN
+  FULL
+  COMPLETED
+  CANCELLED
+}
+
+enum UserRole {
+  USER
+  ADMIN
 }
