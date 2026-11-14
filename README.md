@@ -79,6 +79,17 @@ npm run build
 npm start
 ```
 
+## Deploy the frontend to Netlify
+
+The repository includes `netlify.toml`. Connect the repository to Netlify and
+deploy with the default settings. Add the environment variable
+`API_URL=https://your-backend-domain.example/api` in the Netlify site settings.
+The build generates the browser runtime configuration from that value.
+
+Netlify hosts the Angular frontend only. Deploy the Express backend separately
+and configure its `DATABASE_URL`, `JWT_SECRET`, and CORS policy for the
+Netlify domain.
+
 ## AI usage
 This project is developed with AI pair-programming support (GitHub Copilot / Claude) for:
 - scaffolding,
